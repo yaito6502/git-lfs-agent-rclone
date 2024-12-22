@@ -170,8 +170,10 @@ fn main() {
         std::process::exit(0);
     }
 
-    let rclone_args = &args[1..];
-    let rclone_arg_str = rclone_args.join(" ");
+    // The last element of args is the remote path
+    let last_index = args.len() - 1;
+    let rclone_remote_path = &args[last_index];
+    let rclone_flags = &args[1..last_index];
 
     // read stdin
     let stdin = io::stdin();
@@ -197,9 +199,10 @@ fn main() {
             let src_path = &ev.path;
             // let dst_path = Path::new(&rclone_arg_str).join(&ev.oid);
             let sep = "/";
-            let dst_path = format!("{}{}{}", &rclone_arg_str, sep, &ev.oid);
+            let dst_path = format!("{}{}{}", &rclone_remote_path, sep, &ev.oid);
             let cmd = Command::new("rclone")
                 .arg("copy")
+                .args(rclone_flags)
                 .arg(src_path)
                 .arg(dst_path)
                 .output()
@@ -234,9 +237,11 @@ fn main() {
 
             let sep = "/";
             // let src_path = Path::new(&rclone_arg_str).join(&ev.oid);
-            let src_path = format!("{}{}{}", &rclone_arg_str, sep, &ev.oid);
+            let src_path = format!("{}{}{}", rclone_remote_path, sep, &ev.oid);
+
             let cmd = Command::new("rclone")
                 .arg("copy")
+                .args(rclone_flags)
                 .arg(src_path)
                 .arg(tmp_path.to_str().unwrap().to_string())
                 .output()
